@@ -1,7 +1,8 @@
 /* @flow */
 
 import * as React from 'react';
-import { View, ViewPagerAndroid, StyleSheet, I18nManager } from 'react-native';
+import { View, StyleSheet, I18nManager } from 'react-native';
+import ViewPagerAndroid from "@react-native-community/viewpager";
 import { PagerRendererPropType } from './TabViewPropTypes';
 import type { PagerRendererProps } from './TabViewTypeDefinitions';
 
@@ -13,6 +14,8 @@ type PageScrollEvent = {
 };
 
 type PageScrollState = 'dragging' | 'settling' | 'idle';
+
+type PageScrollStateEvent = PageScrollState | { nativeEvent: { pageScrollState: PageScrollState } };
 
 type Props<T> = PagerRendererProps<T>;
 
@@ -85,8 +88,12 @@ export default class TabViewPagerAndroid<T: *> extends React.Component<
     );
   };
 
-  _handlePageScrollStateChanged = (e: PageScrollState) => {
-    this._isIdle = e === 'idle';
+  _handlePageScrollStateChanged = (e: PageScrollStateEvent) => {
+    // Support both React Native < 0.59 and 0.59+
+    this._isIdle =
+      typeof e !== 'string' && e.nativeEvent
+        ? e.nativeEvent.pageScrollState === 'idle'
+        : e === 'idle';
 
     let nextIndex = this._currentIndex;
 
